@@ -23,6 +23,7 @@ class AgentServer(BaseHTTPRequestHandler):
     wfile = response file ex. 'index.html'
     '''
 
+
     # HTTP GET
     def do_GET(self):
         # HTTP status code 200
@@ -35,8 +36,10 @@ class AgentServer(BaseHTTPRequestHandler):
 
         if self.path == '/download':
             file_name = 'agent.py'
-            # url = "http://192.168.0.105/agent.py"
-            url = "http://" + self.client_address[0] + "/" + file_name
+            client_port = 8000
+            # ex) url = "http://192.168.0.105/agent.py"
+            url = "http://" + self.client_address[0] + ":" + str(client_port) + '/' + file_name
+            print("download from: " + url)
             urllib.request.urlretrieve(url, file_name)
             print('file downloaded')
             agent = subprocess.Popen(['python3.7', file_name])
@@ -65,12 +68,15 @@ class AgentServer(BaseHTTPRequestHandler):
         print('http:', self.path)
         print(self.requestline)
 
+    def set_app_port(self, port):
+        self.app_port = port
+
 
 class AgentPlatform:
     host_address = ''
+    APP_DEFAULT_PORT = 8000
 
-    # default 8000 port
-    host_port = 8000
+    host_port = APP_DEFAULT_PORT
     logger = None
     agent_server = None
 
@@ -81,6 +87,7 @@ class AgentPlatform:
             self.host_port = port[0]
 
         self.agent_server = HTTPServer((self.host_address, self.host_port), AgentServer)
+        # self.agent_server.set_app_port(self.APP_DEFAULT_PORT)
 
         print('AgentPlatform started by ' + str(self.host_port) + ' port.')
 
